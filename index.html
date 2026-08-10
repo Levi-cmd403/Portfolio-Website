@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Levi — Modern Websites & Android Development</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="img/favicon.png" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="topbar">
+        <a class="brand" href="index.html">LEVI</a>
+        <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="main-nav">Menu</button>
+        <nav id="main-nav" class="site-nav" aria-label="Main navigation">
+          <a href="#hero">Home</a>
+          <a href="#about">About</a>
+          <a href="services.html">Services</a>
+          <div class="pill-actions">
+            <a class="btn btn-fill" href="#contact">Let’s Talk</a>
+            <a class="btn btn-outline" href="services.html">View Services</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="hero-stage" id="hero">
+      <aside class="frame frame-left">
+        <div class="about-block" id="about">
+          <span class="accent-dot"></span>
+          <h2>About Levi</h2>
+          <p>I'm Levi-a mobile and web developer with a keen eye for UI/UX. Currently pursuing my BCA, I build robust applications from the ground up using Kotlin. Always learning, always building.</p>
+        </div>
+      </aside>
+
+      <section class="hero-content" aria-label="Hero section">
+        <div class="hero-graphic">
+          <div class="artifact"></div>
+          <div class="hero-text-stack" aria-hidden="true">
+            <div class="hero-text-back">LEVI</div>
+            <div class="hero-text-front">LEVI</div>
+          </div>
+        </div>
+        <div class="hero-caption">
+          <p><span class="highlight">Levi creates modern websites</span> and Android experiences with clean UI, strong structure, and thoughtful interactions.</p>
+          <div class="hero-tags" id="work">
+            <span>Modern Web Design</span>
+            <span>Android Developer</span>
+            <span>Kotlin • Java</span>
+            <span>UI / UX Focus</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="frame frame-right">
+        <div class="social-stack" aria-label="Social links">
+          <a href="https://www.linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn">in</a>
+          <a href="mailto:bhaskerjishant@gmail.com" aria-label="Email">@</a>
+          <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub">gh</a>
+        </div>
+      </aside>
+    </main>
+
+    <section class="service-grid" id="services" aria-label="Services and strengths">
+      <article class="service-card">
+        <p class="card-kicker">01</p>
+        <h2>Modern Websites</h2>
+        <p>Clean, responsive client websites with strong visuals, clear structure, and polished interactions.</p>
+      </article>
+      <article class="service-card">
+        <p class="card-kicker">02</p>
+        <h2>Android Development</h2>
+        <p>Android apps built with Kotlin and Java, shaped around practical functionality and a simple UI.</p>
+      </article>
+      <article class="service-card">
+        <p class="card-kicker">03</p>
+        <h2>Problem Solving</h2>
+        <p>Comfortable with data structures, algorithms, and the kind of thinking that helps projects ship smoothly.</p>
+      </article>
+    </section>
+
+    <section class="resume-panel" id="resume" aria-label="Resume summary">
+      <div class="resume-copy">
+        <p class="strip-label">Resume Snapshot</p>
+        <h2>Jishant Bhasker is a BCA student at GGSIPU focused on Android and modern web experiences.</h2>
+        <p>
+          Current strengths include Kotlin, Java, C++, Python, Android Studio, XML layouts, UI/UX basics,
+          and a growing portfolio of client-ready digital work.
+        </p>
+      </div>
+      <div class="resume-meta">
+        <div>
+          <span>Certification</span>
+          <strong>IBM SkillsBuild Project Based Learning Program</strong>
+        </div>
+        <div>
+          <span>Focus</span>
+          <strong>Android, Client Websites, UI Design</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-strip" id="contact">
+      <div>
+        <p class="strip-label">Contact</p>
+      </div>
+      <div class="contact-methods" aria-label="Contact methods">
+        <a class="strip-link icon-link" href="tel:+91886078708" aria-label="Call Levi">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24c1.1.37 2.28.57 3.52.57a1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1C10.4 21 3 13.6 3 4.5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.42.57 3.52a1 1 0 0 1-.24 1L6.6 10.8Z"/>
+          </svg>
+          <span class="sr-only">Call</span>
+        </a>
+        <a class="strip-link icon-link" href="mailto:bhaskerjishant@gmail.com" aria-label="Email Levi">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 3.1V17h16V8.1l-7.1 4.73a2 2 0 0 1-2.2 0L4 8.1Zm15.2-1.1H4.8L12 12l7.2-4.9Z"/>
+          </svg>
+          <span class="sr-only">Email</span>
+        </a>
+        <a class="strip-link icon-link" href="https://www.linkedin.com" target="_blank" rel="noreferrer" aria-label="Open LinkedIn profile">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6.94 6.5a1.94 1.94 0 1 1-3.88 0 1.94 1.94 0 0 1 3.88 0ZM3.5 9h6.9v11H3.5V9Zm9 0h6.6v1.5h.1A7.2 7.2 0 0 1 20.5 9c3.6 0 4.5 2.4 4.5 5.5V20h-6.9v-4.9c0-1.2 0-2.8-1.8-2.8s-2.1 1.4-2.1 2.7V20h-6.9V9h6.7v1.5h.1A7.2 7.2 0 0 1 12.5 9Z"/>
+          </svg>
+          <span class="sr-only">LinkedIn</span>
+        </a>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>LEVI — Modern Websites and Android Development. ©<span id="year"></span></p>
+    </footer>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
