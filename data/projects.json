@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Portfolio Website v2",
+    "category": "web",
+    "description": "Responsive portfolio with modern visuals and polished interactions.",
+    "stack": ["HTML", "CSS", "JavaScript"],
+    "url": "https://github.com/your-username/portfolio-v2",
+    "featured": true
+  },
+  {
+    "title": "TaskFlow Android App",
+    "category": "android",
+    "description": "Task management app with local storage and clean UX.",
+    "stack": ["Kotlin", "XML", "Room"],
+    "url": "https://github.com/your-username/taskflow",
+    "featured": true
+  },
+  {
+    "title": "Client Landing Page",
+    "category": "web",
+    "description": "SEO-focused landing page with performance optimization.",
+    "stack": ["HTML", "CSS", "JavaScript"],
+    "url": "https://github.com/your-username/client-landing",
+    "featured": false
+  }
+]

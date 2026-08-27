@@ -8,17 +8,24 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="icon" href="img/favicon.png" />
 </head>
 <body>
+  <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
+
   <div class="page-shell">
-    <header class="site-header">
+    <header class="site-header" data-reveal>
       <div class="topbar">
         <a class="brand" href="index.html">LEVI</a>
-        <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="main-nav">Menu</button>
+
+        <div class="topbar-actions">
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
+          <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="main-nav">Menu</button>
+        </div>
+
         <nav id="main-nav" class="site-nav" aria-label="Main navigation">
           <a href="#hero">Home</a>
           <a href="#about">About</a>
+          <a href="#projects">Projects</a>
           <a href="services.html">Services</a>
           <div class="pill-actions">
             <a class="btn btn-fill" href="#contact">Let’s Talk</a>
@@ -28,7 +35,7 @@
       </div>
     </header>
 
-    <main class="hero-stage" id="hero">
+    <main class="hero-stage" id="hero" data-reveal>
       <aside class="frame frame-left">
         <div class="about-block" id="about">
           <span class="accent-dot"></span>
@@ -65,25 +72,58 @@
       </aside>
     </main>
 
-    <section class="service-grid" id="services" aria-label="Services and strengths">
-      <article class="service-card">
+    <section class="stats-strip" aria-label="Highlights" data-reveal>
+      <article class="stat-card">
+        <p class="stat-number" data-count="20">0</p>
+        <p class="stat-label">Projects</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-number" data-count="8">0</p>
+        <p class="stat-label">Core Skills</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-number" data-count="100">0</p>
+        <p class="stat-label">UI Focus %</p>
+      </article>
+    </section>
+
+    <section class="projects-panel" id="projects" aria-label="Projects" data-reveal>
+      <div class="projects-head">
+        <p class="strip-label">Projects</p>
+        <h2>Selected work</h2>
+      </div>
+
+      <div class="project-filters" role="group" aria-label="Filter projects">
+        <button class="filter-btn is-active" data-filter="all" type="button">All</button>
+        <button class="filter-btn" data-filter="web" type="button">Web</button>
+        <button class="filter-btn" data-filter="android" type="button">Android</button>
+        <button class="filter-btn" data-filter="featured" type="button">Featured</button>
+      </div>
+
+      <div id="projects-list" class="projects-grid" aria-live="polite">
+        <p class="projects-state">Loading projects...</p>
+      </div>
+    </section>
+
+    <section class="service-grid" id="services" aria-label="Services and strengths" data-reveal>
+      <article class="service-card" data-reveal>
         <p class="card-kicker">01</p>
         <h2>Modern Websites</h2>
         <p>Clean, responsive client websites with strong visuals, clear structure, and polished interactions.</p>
       </article>
-      <article class="service-card">
+      <article class="service-card" data-reveal>
         <p class="card-kicker">02</p>
         <h2>Android Development</h2>
         <p>Android apps built with Kotlin and Java, shaped around practical functionality and a simple UI.</p>
       </article>
-      <article class="service-card">
+      <article class="service-card" data-reveal>
         <p class="card-kicker">03</p>
         <h2>Problem Solving</h2>
         <p>Comfortable with data structures, algorithms, and the kind of thinking that helps projects ship smoothly.</p>
       </article>
     </section>
 
-    <section class="resume-panel" id="resume" aria-label="Resume summary">
+    <section class="resume-panel" id="resume" aria-label="Resume summary" data-reveal>
       <div class="resume-copy">
         <p class="strip-label">Resume Snapshot</p>
         <h2>Jishant Bhasker is a BCA student at GGSIPU focused on Android and modern web experiences.</h2>
@@ -104,7 +144,7 @@
       </div>
     </section>
 
-    <section class="contact-strip" id="contact">
+    <section class="contact-strip" id="contact" data-reveal>
       <div>
         <p class="strip-label">Contact</p>
       </div>
@@ -134,6 +174,8 @@
       <p>LEVI — Modern Websites and Android Development. ©<span id="year"></span></p>
     </footer>
   </div>
+
+  <button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top">↑</button>
 
   <script src="js/main.js"></script>
 </body>
