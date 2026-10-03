@@ -1,105 +1,75 @@
 document.addEventListener('DOMContentLoaded', function () {
-  var yearEls = document.querySelectorAll('#year');
-  yearEls.forEach(function (el) {
+  var root = document.documentElement;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Footer year
+  document.querySelectorAll('#year').forEach(function (el) {
     el.textContent = new Date().getFullYear();
   });
 
-  var navToggle = document.getElementById('nav-toggle');
-  var mainNav = document.getElementById('main-nav');
+  // ---------- Theme toggle ----------
+  var themeToggle = document.getElementById('theme-toggle');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
 
-  if (navToggle && mainNav) {
-    navToggle.addEventListener('click', function () {
-      var expanded = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', String(!expanded));
-      mainNav.classList.toggle('is-open');
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    if (themeMeta) themeMeta.setAttribute('content', theme === 'dark' ? '#0c0b10' : '#f7f6f3');
+    if (themeToggle) {
+      themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+  }
+  applyTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
     });
   }
 
-  var heroGraphic = document.querySelector('.hero-graphic');
-  var artifact = document.querySelector('.artifact');
-  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ---------- Mobile navigation ----------
+  var header = document.getElementById('site-header');
+  var navToggle = document.getElementById('nav-toggle');
+  var mainNav = document.getElementById('main-nav');
 
-  if (heroGraphic && artifact && !reduceMotion) {
-    var motion = { x: 0, y: 0, targetX: 0, targetY: 0, active: false, frame: null };
-
-    var resetBubble = function () {
-      motion.targetX = 0;
-      motion.targetY = 0;
-      motion.active = false;
-      heroGraphic.classList.remove('is-bending');
-      heroGraphic.style.setProperty('--bubble-scale-x', '1');
-      heroGraphic.style.setProperty('--bubble-scale-y', '1');
-      heroGraphic.style.setProperty('--bubble-tilt', '0deg');
-      heroGraphic.style.setProperty('--bubble-skew-x', '0deg');
-      heroGraphic.style.setProperty('--bubble-skew-y', '0deg');
-      heroGraphic.style.setProperty('--bubble-inner-x', '0px');
-      heroGraphic.style.setProperty('--bubble-inner-y', '0px');
-      heroGraphic.style.setProperty('--bubble-ring-scale', '1');
-      heroGraphic.style.setProperty('--bubble-ring-rotate', '18deg');
-      heroGraphic.style.setProperty('--bubble-highlight-x', '0%');
-      heroGraphic.style.setProperty('--bubble-highlight-y', '0%');
-      heroGraphic.style.setProperty('--bubble-shadow-x', '0%');
-      heroGraphic.style.setProperty('--bubble-shadow-y', '0%');
-      heroGraphic.style.setProperty('--bubble-gloss-x', '0%');
-    };
-
-    var updateBubble = function (event) {
-      var rect = heroGraphic.getBoundingClientRect();
-      var px = (event.clientX - rect.left) / rect.width;
-      var py = (event.clientY - rect.top) / rect.height;
-      motion.targetX = Math.max(-1, Math.min(1, (px - 0.5) * 2));
-      motion.targetY = Math.max(-1, Math.min(1, (py - 0.5) * 2));
-      motion.active = true;
-      heroGraphic.classList.add('is-bending');
-      if (!motion.frame) motion.frame = requestAnimationFrame(tickBubble);
-    };
-
-    var tickBubble = function () {
-      motion.x += (motion.targetX - motion.x) * 0.14;
-      motion.y += (motion.targetY - motion.y) * 0.14;
-
-      heroGraphic.style.setProperty('--bubble-scale-x', String(1 + Math.abs(motion.x) * 0.04));
-      heroGraphic.style.setProperty('--bubble-scale-y', String(1 - Math.abs(motion.x) * 0.03));
-      heroGraphic.style.setProperty('--bubble-tilt', (motion.x * 8).toFixed(2) + 'deg');
-      heroGraphic.style.setProperty('--bubble-skew-x', (motion.x * 3).toFixed(2) + 'deg');
-      heroGraphic.style.setProperty('--bubble-skew-y', (motion.y * 2).toFixed(2) + 'deg');
-      heroGraphic.style.setProperty('--bubble-inner-x', (motion.x * 10).toFixed(2) + 'px');
-      heroGraphic.style.setProperty('--bubble-inner-y', (motion.y * 10).toFixed(2) + 'px');
-      heroGraphic.style.setProperty('--bubble-ring-scale', String(1 + Math.abs(motion.y) * 0.06));
-      heroGraphic.style.setProperty('--bubble-ring-rotate', (18 + motion.x * 7).toFixed(2) + 'deg');
-      heroGraphic.style.setProperty('--bubble-highlight-x', (50 + motion.x * 22).toFixed(2) + '%');
-      heroGraphic.style.setProperty('--bubble-highlight-y', (40 + motion.y * 18).toFixed(2) + '%');
-      heroGraphic.style.setProperty('--bubble-shadow-x', (50 - motion.x * 20).toFixed(2) + '%');
-      heroGraphic.style.setProperty('--bubble-shadow-y', (60 - motion.y * 18).toFixed(2) + '%');
-      heroGraphic.style.setProperty('--bubble-gloss-x', (50 + motion.x * 15).toFixed(2) + '%');
-
-      var idle = Math.abs(motion.targetX - motion.x) < 0.003 && Math.abs(motion.targetY - motion.y) < 0.003;
-      if (!motion.active && idle) {
-        motion.frame = null;
-        return;
-      }
-      motion.frame = requestAnimationFrame(tickBubble);
-    };
-
-    heroGraphic.addEventListener('pointermove', updateBubble);
-    heroGraphic.addEventListener('pointerenter', updateBubble);
-    heroGraphic.addEventListener('pointerleave', resetBubble);
-    resetBubble();
+  function setMenu(open) {
+    if (!navToggle || !mainNav) return;
+    navToggle.setAttribute('aria-expanded', String(open));
+    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    mainNav.classList.toggle('is-open', open);
   }
 
-  // Scroll progress + back to top
+  if (navToggle && mainNav) {
+    navToggle.addEventListener('click', function () {
+      setMenu(navToggle.getAttribute('aria-expanded') !== 'true');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setMenu(false);
+    });
+    document.addEventListener('click', function (e) {
+      if (!mainNav.classList.contains('is-open')) return;
+      if (!mainNav.contains(e.target) && !navToggle.contains(e.target)) setMenu(false);
+    });
+    mainNav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setMenu(false);
+    });
+  }
+
+  // ---------- Scroll UI: header state, progress bar, back-to-top ----------
   var progress = document.getElementById('scroll-progress');
   var backToTop = document.getElementById('back-to-top');
 
-  function onScrollUI() {
+  function onScroll() {
     var doc = document.documentElement;
     var max = doc.scrollHeight - doc.clientHeight;
-    var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
-    if (progress) progress.style.width = pct + '%';
-    if (backToTop) backToTop.classList.toggle('is-visible', window.scrollY > 320);
+    var y = window.scrollY;
+    if (progress) progress.style.width = (max > 0 ? (y / max) * 100 : 0) + '%';
+    if (header) header.classList.toggle('is-scrolled', y > 8);
+    if (backToTop) backToTop.classList.toggle('is-visible', y > 480);
   }
-  window.addEventListener('scroll', onScrollUI, { passive: true });
-  onScrollUI();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 
   if (backToTop) {
     backToTop.addEventListener('click', function () {
@@ -107,9 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Reveal animation
+  // ---------- Reveal on scroll ----------
   var revealEls = document.querySelectorAll('[data-reveal]');
-  if ('IntersectionObserver' in window) {
+  if ('IntersectionObserver' in window && !reduceMotion) {
     var revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
@@ -117,64 +87,97 @@ document.addEventListener('DOMContentLoaded', function () {
           revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.14 });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revealEls.forEach(function (el) { revealObserver.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('is-revealed'); });
   }
 
-  // Stats count up
-  var statNumbers = document.querySelectorAll('.stat-number[data-count]');
-  function animateCount(el) {
-    var target = Number(el.getAttribute('data-count')) || 0;
-    var startTime = null;
-    var duration = 1200;
-    function step(ts) {
-      if (!startTime) startTime = ts;
-      var t = Math.min((ts - startTime) / duration, 1);
-      var eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = String(Math.floor(target * eased));
-      if (t < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
+  // ---------- Scrollspy (home page) ----------
+  var spyLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a.nav-link[href^="#"]'));
+  var spySections = spyLinks.map(function (link) {
+    return document.querySelector(link.getAttribute('href'));
+  });
+
+  function setActiveNav() {
+    var pos = window.scrollY + 140;
+    var current = -1;
+    spySections.forEach(function (sec, i) {
+      if (sec && pos >= sec.offsetTop) current = i;
+    });
+    // At the very bottom the last section may be too short to reach the trigger line.
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = spySections.length - 1;
+    spyLinks.forEach(function (link, i) {
+      link.classList.toggle('is-current', i === current);
+    });
   }
-  if ('IntersectionObserver' in window) {
-    var statObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          animateCount(entry.target);
-          statObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.55 });
-    statNumbers.forEach(function (el) { statObserver.observe(el); });
-  } else {
-    statNumbers.forEach(animateCount);
+  if (spyLinks.length) {
+    window.addEventListener('scroll', setActiveNav, { passive: true });
+    setActiveNav();
   }
 
-  // Dynamic projects
+  // ---------- Projects ----------
   var projectsList = document.getElementById('projects-list');
   var filterButtons = Array.prototype.slice.call(document.querySelectorAll('.filter-btn'));
   var projectsData = [];
 
   function escapeHtml(value) {
-    return String(value || '')
+    return String(value == null ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
 
+  function safeUrl(url) {
+    return /^https?:\/\//i.test(url || '') ? url : '#';
+  }
+
+  function thumbMarkup(category) {
+    if (category === 'android') {
+      return '<div class="pt pt-app" aria-hidden="true">' +
+        '<span class="h"></span>' +
+        '<span class="r on"><i></i><b></b></span>' +
+        '<span class="r on"><i></i><b></b></span>' +
+        '<span class="r"><i></i><b></b></span>' +
+        '<span class="r"><i></i><b></b></span>' +
+        '<span class="fab"></span></div>';
+    }
+    return '<div class="pt pt-web" aria-hidden="true">' +
+      '<span class="bar"><i></i><i></i><i></i></span>' +
+      '<span class="l"></span><span class="l w2"></span><span class="l m"></span>' +
+      '<span class="b"></span>' +
+      '<span class="g"><i></i><i></i><i></i></span></div>';
+  }
+
+  var TINTS = ['', 'tint-b', 'tint-c'];
+
   function projectCard(project, i) {
+    var category = String(project.category || 'project').toLowerCase();
     var stack = (project.stack || []).map(function (item) {
       return '<span>' + escapeHtml(item) + '</span>';
     }).join('');
+    var url = safeUrl(project.url);
+    var isGithub = /^https?:\/\/(www\.)?github\.com/i.test(url);
+    var num = String(i + 1);
+    if (num.length < 2) num = '0' + num;
+
     return (
-      '<article class="project-card is-magnetic" style="animation-delay:' + (i * 60) + 'ms">' +
-      '<p class="project-kicker">' + escapeHtml(project.category || 'project') + '</p>' +
-      '<h3>' + escapeHtml(project.title) + '</h3>' +
-      '<p>' + escapeHtml(project.description) + '</p>' +
-      '<div class="project-stack">' + stack + '</div>' +
-      '<a class="project-link" href="' + escapeHtml(project.url || '#') + '" target="_blank" rel="noreferrer">View Project</a>' +
+      '<article class="project-card ' + TINTS[i % TINTS.length] + '" style="animation-delay:' + (i * 70) + 'ms">' +
+        '<div class="project-thumb">' +
+          '<span class="project-index">' + num + '</span>' +
+          (project.featured ? '<span class="project-badge">Featured</span>' : '') +
+          thumbMarkup(category) +
+        '</div>' +
+        '<div class="project-body">' +
+          '<p class="project-kicker">' + escapeHtml(category) + '</p>' +
+          '<h3>' + escapeHtml(project.title) + '</h3>' +
+          '<p>' + escapeHtml(project.description) + '</p>' +
+          '<div class="project-stack">' + stack + '</div>' +
+          '<a class="link-arrow project-link" href="' + escapeHtml(url) + '" target="_blank" rel="noreferrer">' +
+            (isGithub ? 'View on GitHub' : 'View project') +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>' +
+          '</a>' +
+        '</div>' +
       '</article>'
     );
   }
@@ -184,88 +187,187 @@ document.addEventListener('DOMContentLoaded', function () {
     var list = projectsData.filter(function (project) {
       if (filter === 'all') return true;
       if (filter === 'featured') return !!project.featured;
-      return (project.category || '').toLowerCase() === filter;
+      return String(project.category || '').toLowerCase() === filter;
     });
     if (!list.length) {
-      projectsList.innerHTML = '<p class="projects-state">No projects found.</p>';
+      projectsList.innerHTML = '<p class="projects-state">No projects in this category yet.</p>';
       return;
     }
     projectsList.innerHTML = list.map(projectCard).join('');
-    attachMagnetic();
-  }
-
-  function loadProjects() {
-    if (!projectsList) return;
-    fetch('data/projects.json')
-      .then(function (res) { if (!res.ok) throw new Error('Failed'); return res.json(); })
-      .then(function (data) { projectsData = Array.isArray(data) ? data : []; renderProjects('all'); })
-      .catch(function () { projectsList.innerHTML = '<p class="projects-state">Could not load projects right now.</p>'; });
   }
 
   if (projectsList) {
     filterButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var filter = (btn.getAttribute('data-filter') || 'all').toLowerCase();
-        filterButtons.forEach(function (b) { b.classList.remove('is-active'); });
-        btn.classList.add('is-active');
+        filterButtons.forEach(function (b) {
+          var active = b === btn;
+          b.classList.toggle('is-active', active);
+          b.setAttribute('aria-pressed', String(active));
+        });
         renderProjects(filter);
       });
     });
-    loadProjects();
+
+    fetch('data/projects.json')
+      .then(function (res) { if (!res.ok) throw new Error('Request failed'); return res.json(); })
+      .then(function (data) { projectsData = Array.isArray(data) ? data : []; renderProjects('all'); })
+      .catch(function () {
+        projectsList.innerHTML = '<p class="projects-state">Projects couldn’t be loaded right now. Please try again shortly.</p>';
+      });
   }
 
-  // Active nav
-  var navSectionLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a[href^="#"]'));
-  var sections = navSectionLinks.map(function (link) {
-    return document.querySelector(link.getAttribute('href'));
-  }).filter(Boolean);
+  // ---------- Copy to clipboard (with fallback for older / non-secure contexts) ----------
+  function copyText(text, onDone, onFail) {
+    function legacy() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      if (ok) onDone(); else if (onFail) onFail();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onDone, legacy);
+    } else {
+      legacy();
+    }
+  }
 
-  function setActiveNav() {
-    var pos = window.scrollY + 130;
-    var current = '';
-    sections.forEach(function (sec) {
-      if (pos >= sec.offsetTop) current = '#' + sec.id;
-    });
-    navSectionLinks.forEach(function (link) {
-      link.classList.toggle('is-current', link.getAttribute('href') === current);
+  var copyBtn = document.getElementById('copy-email');
+  if (copyBtn) {
+    var copyTimer = null;
+    copyBtn.addEventListener('click', function () {
+      var addr = copyBtn.getAttribute('data-email') || '';
+      copyText(addr, function () {
+        copyBtn.classList.add('is-copied');
+        clearTimeout(copyTimer);
+        copyTimer = setTimeout(function () { copyBtn.classList.remove('is-copied'); }, 2000);
+      }, function () {
+        // Clipboard blocked: open the email menu instead so the address is never a dead end.
+        openMailMenu(copyBtn);
+      });
     });
   }
-  window.addEventListener('scroll', setActiveNav, { passive: true });
-  setActiveNav();
 
-  // Smooth anchors
-  navSectionLinks.forEach(function (link) {
-    link.addEventListener('click', function (e) {
-      var id = link.getAttribute('href');
-      var target = document.querySelector(id);
-      if (!target) return;
-      e.preventDefault();
-      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-      if (mainNav && mainNav.classList.contains('is-open')) {
-        mainNav.classList.remove('is-open');
-        if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+  // ---------- Email menu ----------
+  // A bare mailto: link does nothing on computers without a default mail app, so every
+  // email link opens a small menu (Gmail / Outlook / mail app / copy). Without JS it
+  // still behaves as a normal mailto: link.
+  var mailMenu = null;
+  var mailTrigger = null;
+
+  function buildMailMenu() {
+    var el = document.createElement('div');
+    el.className = 'mail-menu';
+    el.setAttribute('role', 'menu');
+    el.setAttribute('aria-label', 'Choose how to send an email');
+    el.hidden = true;
+    el.innerHTML =
+      '<p class="mail-menu-title">Send an email via</p>' +
+      '<a role="menuitem" data-kind="gmail" target="_blank" rel="noreferrer"><span>Gmail</span><small>opens in a new tab</small></a>' +
+      '<a role="menuitem" data-kind="outlook" target="_blank" rel="noreferrer"><span>Outlook</span><small>opens in a new tab</small></a>' +
+      '<a role="menuitem" data-kind="app"><span>Email app</span><small>on this device</small></a>' +
+      '<button role="menuitem" type="button" data-kind="copy"><span>Copy address</span><small data-copy-state></small></button>';
+    document.body.appendChild(el);
+
+    el.addEventListener('click', function (e) {
+      var copy = e.target.closest('[data-kind="copy"]');
+      if (copy) {
+        var state = copy.querySelector('[data-copy-state]');
+        copyText(el.getAttribute('data-email'), function () {
+          state.textContent = 'copied ✓';
+          setTimeout(closeMailMenu, 900);
+        }, function () {
+          state.textContent = 'press Ctrl+C to copy';
+        });
+      } else if (e.target.closest('a')) {
+        closeMailMenu(false);
       }
     });
-  });
-
-  // Magnetic interactions
-  function attachMagnetic() {
-    if (reduceMotion) return;
-    var magneticEls = document.querySelectorAll('.btn, .filter-btn, .service-card, .project-card');
-    magneticEls.forEach(function (el) {
-      if (el.dataset.magReady === '1') return;
-      el.dataset.magReady = '1';
-      el.classList.add('is-magnetic');
-      el.addEventListener('pointermove', function (e) {
-        var r = el.getBoundingClientRect();
-        var x = ((e.clientX - r.left) / r.width - 0.5) * 10;
-        var y = ((e.clientY - r.top) / r.height - 0.5) * 10;
-        el.style.transform = 'translate(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px)';
-      });
-      el.addEventListener('pointerleave', function () {
-        el.style.transform = '';
-      });
+    el.addEventListener('keydown', function (e) {
+      var items = Array.prototype.slice.call(el.querySelectorAll('[role="menuitem"]'));
+      var i = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
+      else if (e.key === 'Tab') { closeMailMenu(false); }
     });
+    return el;
   }
-  attachMagnetic();
+
+  function positionMailMenu(trigger) {
+    var r = trigger.getBoundingClientRect();
+    var mw = mailMenu.offsetWidth;
+    var mh = mailMenu.offsetHeight;
+    var gap = 10;
+    var left = Math.min(Math.max(12, r.left), window.innerWidth - mw - 12);
+    var below = window.innerHeight - r.bottom;
+    var top = below >= mh + gap + 12 ? r.bottom + gap : Math.max(12, r.top - mh - gap);
+    mailMenu.style.left = left + 'px';
+    mailMenu.style.top = top + 'px';
+  }
+
+  function openMailMenu(trigger) {
+    var href = trigger.getAttribute('href') || ('mailto:' + (trigger.getAttribute('data-email') || ''));
+    var email = decodeURIComponent(href.replace(/^mailto:/i, '').split('?')[0]);
+    var subject = encodeURIComponent('Project enquiry');
+    if (!mailMenu) mailMenu = buildMailMenu();
+
+    mailMenu.setAttribute('data-email', email);
+    mailMenu.querySelector('[data-kind="gmail"]').href =
+      'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + subject;
+    mailMenu.querySelector('[data-kind="outlook"]').href =
+      'https://outlook.live.com/mail/0/deeplink/compose?to=' + encodeURIComponent(email) + '&subject=' + subject;
+    mailMenu.querySelector('[data-kind="app"]').href = 'mailto:' + email + '?subject=' + subject;
+    mailMenu.querySelector('[data-copy-state]').textContent = email;
+
+    mailTrigger = trigger;
+    trigger.setAttribute('aria-haspopup', 'menu');
+    trigger.setAttribute('aria-expanded', 'true');
+    mailMenu.hidden = false;
+    positionMailMenu(trigger);
+    mailMenu.classList.add('is-open');
+    mailMenu.querySelector('[role="menuitem"]').focus({ preventScroll: true });
+  }
+
+  function closeMailMenu(restoreFocus) {
+    if (!mailMenu || mailMenu.hidden) return;
+    mailMenu.classList.remove('is-open');
+    mailMenu.hidden = true;
+    if (mailTrigger) {
+      mailTrigger.setAttribute('aria-expanded', 'false');
+      if (restoreFocus !== false) mailTrigger.focus({ preventScroll: true });
+    }
+    mailTrigger = null;
+  }
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href^="mailto:"]');
+    if (link && !(mailMenu && mailMenu.contains(link))) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      var same = mailTrigger === link && mailMenu && !mailMenu.hidden;
+      closeMailMenu(false);
+      if (!same) openMailMenu(link);
+      return;
+    }
+    if (mailMenu && !mailMenu.hidden && !mailMenu.contains(e.target)) closeMailMenu(false);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMailMenu();
+  });
+  var lastWidth = window.innerWidth;
+  window.addEventListener('resize', function () {
+    // Mobile browsers fire resize when the address bar collapses; only react to real width changes.
+    if (window.innerWidth !== lastWidth) { lastWidth = window.innerWidth; closeMailMenu(false); }
+  });
+  window.addEventListener('scroll', function () {
+    if (mailMenu && !mailMenu.hidden && mailTrigger) positionMailMenu(mailTrigger);
+  }, { passive: true });
 });
