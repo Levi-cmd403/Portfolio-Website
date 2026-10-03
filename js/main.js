@@ -1,3 +1,5 @@
+window.__appReady = true;
+
 document.addEventListener('DOMContentLoaded', function () {
   var root = document.documentElement;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -38,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     navToggle.setAttribute('aria-expanded', String(open));
     navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     mainNav.classList.toggle('is-open', open);
+    if (header) header.classList.toggle('menu-open', open);
   }
 
   if (navToggle && mainNav) {
@@ -47,7 +50,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') setMenu(false);
     });
-    document.addEventListener('click', function (e) {
+    // pointerdown (not click): iOS Safari does not deliver clicks from non-interactive areas to document.
+    document.addEventListener('pointerdown', function (e) {
       if (!mainNav.classList.contains('is-open')) return;
       if (!mainNav.contains(e.target) && !navToggle.contains(e.target)) setMenu(false);
     });
@@ -56,20 +60,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---------- Scroll UI: header state, progress bar, back-to-top ----------
+  // ---------- Back to top ----------
   var progress = document.getElementById('scroll-progress');
   var backToTop = document.getElementById('back-to-top');
-
-  function onScroll() {
-    var doc = document.documentElement;
-    var max = doc.scrollHeight - doc.clientHeight;
-    var y = window.scrollY;
-    if (progress) progress.style.width = (max > 0 ? (y / max) * 100 : 0) + '%';
-    if (header) header.classList.toggle('is-scrolled', y > 8);
-    if (backToTop) backToTop.classList.toggle('is-visible', y > 480);
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
 
   if (backToTop) {
     backToTop.addEventListener('click', function () {
@@ -93,27 +86,63 @@ document.addEventListener('DOMContentLoaded', function () {
     revealEls.forEach(function (el) { el.classList.add('is-revealed'); });
   }
 
-  // ---------- Scrollspy (home page) ----------
+  // ---------- Scroll effects (one throttled handler: progress, header, back-to-top, scrollspy) ----------
   var spyLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a.nav-link[href^="#"]'));
   var spySections = spyLinks.map(function (link) {
     return document.querySelector(link.getAttribute('href'));
   });
+  var scrollState = { scrolled: null, topBtn: null, spy: -2, pending: false };
 
-  function setActiveNav() {
-    var pos = window.scrollY + 140;
-    var current = -1;
-    spySections.forEach(function (sec, i) {
-      if (sec && pos >= sec.offsetTop) current = i;
-    });
-    // At the very bottom the last section may be too short to reach the trigger line.
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = spySections.length - 1;
-    spyLinks.forEach(function (link, i) {
-      link.classList.toggle('is-current', i === current);
-    });
+  function updateOnScroll() {
+    scrollState.pending = false;
+    var doc = document.documentElement;
+    var y = window.pageYOffset || doc.scrollTop || 0;
+    var max = doc.scrollHeight - window.innerHeight;
+
+    if (progress) progress.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, y / max) : 0).toFixed(4) + ')';
+
+    var scrolled = y > 8;
+    if (header && scrolled !== scrollState.scrolled) {
+      scrollState.scrolled = scrolled;
+      header.classList.toggle('is-scrolled', scrolled);
+    }
+
+    var showTop = y > 480;
+    if (backToTop && showTop !== scrollState.topBtn) {
+      scrollState.topBtn = showTop;
+      backToTop.classList.toggle('is-visible', showTop);
+    }
+
+    if (spyLinks.length) {
+      var current = -1;
+      for (var i = 0; i < spySections.length; i++) {
+        if (spySections[i] && y + 140 >= spySections[i].offsetTop) current = i;
+      }
+      // At the very bottom the last section may be too short to reach the trigger line.
+      if (max > 0 && y >= max - 4) current = spySections.length - 1;
+      if (current !== scrollState.spy) {
+        scrollState.spy = current;
+        spyLinks.forEach(function (link, idx) { link.classList.toggle('is-current', idx === current); });
+      }
+    }
   }
-  if (spyLinks.length) {
-    window.addEventListener('scroll', setActiveNav, { passive: true });
-    setActiveNav();
+
+  function requestScrollUpdate() {
+    if (scrollState.pending) return;
+    scrollState.pending = true;
+    window.requestAnimationFrame(updateOnScroll);
+  }
+  window.addEventListener('scroll', requestScrollUpdate, { passive: true });
+  window.addEventListener('resize', requestScrollUpdate);
+  window.addEventListener('load', requestScrollUpdate); // fonts/layout have settled
+  updateOnScroll();
+
+  // Pause the floating hero mockup while it is offscreen (battery / jank on phones).
+  var heroVisual = document.querySelector('.hero-visual');
+  if (heroVisual && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { heroVisual.classList.toggle('is-paused', !entry.isIntersecting); });
+    }).observe(heroVisual);
   }
 
   // ---------- Projects ----------
@@ -223,9 +252,11 @@ document.addEventListener('DOMContentLoaded', function () {
       var ta = document.createElement('textarea');
       ta.value = text;
       ta.setAttribute('readonly', '');
-      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px';
       document.body.appendChild(ta);
+      try { ta.focus({ preventScroll: true }); } catch (e) {}
       ta.select();
+      try { ta.setSelectionRange(0, text.length); } catch (e) {} // iOS needs an explicit range
       var ok = false;
       try { ok = document.execCommand('copy'); } catch (e) {}
       document.body.removeChild(ta);
@@ -259,6 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // email link opens a small menu (Gmail / Outlook / mail app / copy). Without JS it
   // still behaves as a normal mailto: link.
   var mailMenu = null;
+  var mailBackdrop = null;
   var mailTrigger = null;
 
   function buildMailMenu() {
@@ -267,6 +299,10 @@ document.addEventListener('DOMContentLoaded', function () {
     el.setAttribute('role', 'menu');
     el.setAttribute('aria-label', 'Choose how to send an email');
     el.hidden = true;
+    mailBackdrop = document.createElement('div');
+    mailBackdrop.className = 'mail-backdrop';
+    mailBackdrop.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(mailBackdrop);
     el.innerHTML =
       '<p class="mail-menu-title">Send an email via</p>' +
       '<a role="menuitem" data-kind="gmail" target="_blank" rel="noreferrer"><span>Gmail</span><small>opens in a new tab</small></a>' +
@@ -333,12 +369,14 @@ document.addEventListener('DOMContentLoaded', function () {
     mailMenu.hidden = false;
     positionMailMenu(trigger);
     mailMenu.classList.add('is-open');
+    mailBackdrop.classList.add('is-open');
     mailMenu.querySelector('[role="menuitem"]').focus({ preventScroll: true });
   }
 
   function closeMailMenu(restoreFocus) {
     if (!mailMenu || mailMenu.hidden) return;
     mailMenu.classList.remove('is-open');
+    mailBackdrop.classList.remove('is-open');
     mailMenu.hidden = true;
     if (mailTrigger) {
       mailTrigger.setAttribute('aria-expanded', 'false');
@@ -358,6 +396,11 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     if (mailMenu && !mailMenu.hidden && !mailMenu.contains(e.target)) closeMailMenu(false);
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (!mailMenu || mailMenu.hidden) return;
+    if (mailMenu.contains(e.target) || (mailTrigger && mailTrigger.contains(e.target))) return;
+    closeMailMenu(false);
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeMailMenu();

@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="format-detection" content="telephone=no" />
   <title>Services — Jishant Bhasker (Levi)</title>
   <meta name="description" content="AI ad creation, premium websites, and Android / iOS app development by Jishant Bhasker (Levi). Built to help your brand look premium, work smoothly, and convert better." />
   <meta name="theme-color" content="#f7f6f3" />
@@ -18,14 +20,17 @@
       if (theme !== 'light' && theme !== 'dark') {
         theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
-      document.documentElement.setAttribute('data-theme', theme);
-      document.documentElement.classList.add('js');
+      var root = document.documentElement;
+      root.setAttribute('data-theme', theme);
+      root.classList.add('js');
+      /* Safety net: if main.js has not started within 4s, show everything instead of leaving it hidden. */
+      setTimeout(function () { if (!window.__appReady) root.classList.add('no-reveal'); }, 4000);
     })();
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -66,9 +71,9 @@
     <!-- ============ Intro ============ -->
     <section class="page-hero" aria-labelledby="services-title">
       <div class="container">
-        <p class="eyebrow" data-reveal>Services</p>
-        <h1 class="display" id="services-title" data-reveal style="--d:80ms">Built to help your brand look premium, work smoothly, and <em>convert better.</em></h1>
-        <p class="lead" data-reveal style="--d:160ms">
+        <p class="rise eyebrow">Services</p>
+        <h1 class="rise display" id="services-title" style="--d:80ms">Built to help your brand look premium, work smoothly, and <em>convert better.</em></h1>
+        <p class="rise lead" style="--d:160ms">
           I create sharp digital experiences across ads, websites, and mobile apps. The goal is simple:
           make your business look credible, modern, and worth contacting.
         </p>
