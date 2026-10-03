@@ -32,7 +32,8 @@
   </script>
 
   <link rel="preload" href="fonts/geist.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="images/hero.webp" as="image" type="image/webp" fetchpriority="high" />
+  <link rel="preload" href="images/hero-bg.webp" as="image" type="image/webp" media="(min-width: 1101px), (orientation: landscape)" fetchpriority="high" />
+  <link rel="preload" href="images/hero-bg-m.webp" as="image" type="image/webp" media="(max-width: 1100px) and (orientation: portrait)" fetchpriority="high" />
   <link rel="stylesheet" href="css/style.css" />
 
   <script type="application/ld+json">
@@ -47,7 +48,7 @@
     }
   </script>
 </head>
-<body>
+<body class="has-hero-art">
   <a class="skip-link" href="#main">Skip to content</a>
   <div id="sentinel-top" class="sentinel" aria-hidden="true"></div>
   <div id="sentinel-fold" class="sentinel" aria-hidden="true"></div>
@@ -84,24 +85,20 @@
   </header>
 
   <main id="main">
-    <!-- Hero: asymmetric split, text left, image right -->
-    <section class="hero" id="top" aria-labelledby="hero-title">
-      <div class="container hero-grid">
+    <!-- Hero: full-bleed art background, text over the calm left side -->
+    <section class="hero art-band" id="top" aria-labelledby="hero-title">
+      <div class="container">
         <div class="hero-copy">
-          <p class="status rise">Available for new projects</p>
-          <h1 class="display rise" id="hero-title" style="--d:70ms">Clean websites and <em>Android apps.</em></h1>
-          <p class="lead rise" style="--d:140ms">I'm Jishant Bhasker (Levi), a BCA student building Android apps in Kotlin and responsive websites for clients.</p>
-          <div class="hero-cta rise" style="--d:210ms">
-            <a class="btn btn-primary" href="#work">View my work
-              <svg class="icon icon-go" aria-hidden="true"><use href="images/icons.svg#i-arrow-right"/></svg>
-            </a>
-            <a class="btn btn-secondary" href="mailto:bhaskerjishant@gmail.com">Get in touch</a>
-          </div>
+        <p class="status rise">Available for new projects</p>
+        <h1 class="display rise" id="hero-title" style="--d:70ms">Clean websites and <em>Android apps.</em></h1>
+        <p class="lead rise" style="--d:140ms">I'm Jishant Bhasker (Levi), a BCA student building Android apps in Kotlin and responsive websites for clients.</p>
+        <div class="hero-cta rise" style="--d:210ms">
+          <a class="btn btn-primary" href="#work">View my work
+            <svg class="icon icon-go" aria-hidden="true"><use href="images/icons.svg#i-arrow-right"/></svg>
+          </a>
+          <a class="btn btn-secondary" href="mailto:bhaskerjishant@gmail.com">Get in touch</a>
         </div>
-
-        <figure class="hero-media rise" style="--d:140ms">
-          <img src="images/hero.webp" width="1280" height="720" alt="Abstract sculpture of clear glass folded around a matte violet form on a dark graphite background" fetchpriority="high" decoding="async" />
-        </figure>
+        </div>
       </div>
     </section>
 
