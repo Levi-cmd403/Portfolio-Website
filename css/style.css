@@ -300,22 +300,23 @@ h2.section-title {
 .hero + .section, .section + .section { padding-top: 0; }
 .section-head { margin-bottom: clamp(32px, 4.5vw, 56px); }
 
-/* ---------- Art bands (home hero + services hero) ----------
+/* ---------- Art bands (hero, services hero, contact, services closing) ----------
    The artwork is a full-bleed background behind the text, never a boxed card.
    Inside a band the tokens are re-pointed to a dark palette, so every child
-   (headline, buttons, status) is light-on-dark automatically in BOTH themes.
-   The band melts into the page at the bottom, so there is no hard seam. */
+   (headline, buttons, links) is light-on-dark automatically in BOTH themes.
+   --band-fade melts the band into the page (dark theme, top-of-page heroes only);
+   mid-page bands and the light theme use crisp edges (a dark-to-light fade looks muddy).
+   --scrim darkens the text side of the art so text always passes WCAG AA. */
 .art-band {
   position: relative; isolation: isolate;
   --ink: #f2f0f7; --bg: #09090b; --surface: #15151a;
   --muted: #c6c5d2; --faint: #a6a5b4;
   --line: rgba(255, 255, 255, 0.1); --line-strong: rgba(255, 255, 255, 0.24);
   --accent: #b6adf6; --accent-soft: rgba(182, 173, 246, 0.14);
+  --band-fade: linear-gradient(180deg, transparent 78%, var(--page-bg) 100%);
+  --scrim: linear-gradient(90deg, rgba(9, 9, 11, 0.5) 0%, rgba(9, 9, 11, 0.12) 52%, transparent 78%);
   color: var(--ink);
   background-color: #1d1c24;
-  /* sit behind the transparent sticky header */
-  margin-top: calc(var(--header-h) * -1);
-  padding-top: var(--header-h);
 }
 .art-band::before {
   content: ''; position: absolute; inset: 0; z-index: -2;
@@ -324,14 +325,13 @@ h2.section-title {
 }
 .art-band::after {
   content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    linear-gradient(180deg, transparent 72%, var(--page-bg) 100%),
-    linear-gradient(90deg, rgba(9, 9, 11, 0.5) 0%, rgba(9, 9, 11, 0.12) 52%, transparent 78%);
+  background: var(--band-fade), var(--scrim);
 }
-/* Light theme: end the band with a clean straight edge (a dark-to-light fade would look muddy grey) */
-:root:not([data-theme='dark']) .art-band::after {
-  background: linear-gradient(90deg, rgba(9, 9, 11, 0.5) 0%, rgba(9, 9, 11, 0.12) 52%, transparent 78%);
-}
+:root:not([data-theme='dark']) .art-band,
+.contact.art-band, .cta.art-band { --band-fade: linear-gradient(transparent, transparent); }
+
+/* The two top-of-page heroes sit behind the transparent sticky header */
+.hero, .page-hero { margin-top: calc(var(--header-h) * -1); padding-top: var(--header-h); }
 
 .hero {
   --band-art: url('../images/hero-bg.webp');
@@ -474,7 +474,8 @@ h2.section-title {
 @media (hover: hover) { .skill-items li { transition: color 0.2s; } .skill-items li:hover { color: var(--accent); } }
 
 /* ---------- Contact ---------- */
-.contact { border-top: 1px solid var(--line-strong); padding: clamp(72px, 10vw, 136px) 0 clamp(56px, 8vw, 96px); }
+.contact { --band-art: url('../images/services-bg.webp'); padding: clamp(72px, 10vw, 136px) 0; }
+.contact-copy, .cta-copy { max-width: 640px; }
 .contact h2 { font-size: clamp(2.5rem, 7vw, 5.5rem); max-width: 13ch; margin-bottom: 20px; }
 .contact .lead { margin-bottom: 36px; }
 .contact-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
@@ -511,7 +512,7 @@ h2.section-title {
 .mail-backdrop { display: none; }
 
 /* ---------- Footer ---------- */
-.site-footer { padding: 8px 0 40px; }
+.site-footer { padding: 40px 0 40px; }
 .footer-inner {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px;
   padding-top: 28px; border-top: 1px solid var(--line);
@@ -567,7 +568,7 @@ h2.section-title {
 
 .cta h2 { font-size: clamp(2.2rem, 5.5vw, 4.2rem); max-width: 14ch; margin-bottom: 18px; }
 .cta .lead { margin-bottom: 32px; }
-.cta { border-top: 1px solid var(--line-strong); padding: clamp(64px, 9vw, 120px) 0; }
+.cta { --band-art: url('../images/hero-bg.webp'); padding: clamp(64px, 9vw, 120px) 0; }
 
 /* ---------- Motion: reveal + hero entrance ---------- */
 .js [data-reveal] { opacity: 0; transform: translateY(20px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); transition-delay: var(--d, 0ms); }
@@ -660,30 +661,18 @@ h2.section-title {
    and the bottom padding is derived from the image's own proportions, so the sculpture always
    starts below the buttons, at every width (no overlap, no matter how the text wraps). */
 @media (max-width: 1100px) {
-  .art-band::after {
-    background:
-      linear-gradient(180deg, transparent 80%, var(--page-bg) 100%),
-      linear-gradient(90deg, rgba(9, 9, 11, 0.78) 0%, rgba(9, 9, 11, 0.55) 48%, rgba(9, 9, 11, 0.1) 80%);
-  }
-  :root:not([data-theme='dark']) .art-band::after {
-    background: linear-gradient(90deg, rgba(9, 9, 11, 0.78) 0%, rgba(9, 9, 11, 0.55) 48%, rgba(9, 9, 11, 0.1) 80%);
-  }
+  .art-band { --scrim: linear-gradient(90deg, rgba(9, 9, 11, 0.78) 0%, rgba(9, 9, 11, 0.55) 48%, rgba(9, 9, 11, 0.1) 80%); }
 }
 
 /* Landscape windows/phones: keep the text in the left half, where the art is calm */
 @media (max-width: 1100px) and (orientation: landscape) {
-  .hero-copy { max-width: 54%; }
+  .hero-copy, .contact-copy, .cta-copy { max-width: 54%; }
   .page-hero h1, .page-hero .lead { max-width: 54%; }
 }
 
 @media (max-width: 1100px) and (orientation: portrait) {
+  .art-band { --scrim: linear-gradient(180deg, rgba(9, 9, 11, 0.4) 0%, transparent 50%); }
   .art-band::before { background-size: 100% auto; background-position: 50% 100%; }
-  .art-band::after {
-    background:
-      linear-gradient(180deg, transparent 82%, var(--page-bg) 100%),
-      linear-gradient(180deg, rgba(9, 9, 11, 0.4) 0%, transparent 50%);
-  }
-  :root:not([data-theme='dark']) .art-band::after { background: linear-gradient(180deg, rgba(9, 9, 11, 0.4) 0%, transparent 50%); }
 
   /* hero-bg-m.webp is 900x1760 and the sculpture starts at y=1000, so it begins 0.845 x width above the bottom edge */
   .hero { --band-art: url('../images/hero-bg-m.webp'); align-items: flex-start; min-height: 0; padding-bottom: calc(84.5vw + 28px); }
@@ -691,6 +680,11 @@ h2.section-title {
 
   /* services-bg-m.webp is 900x1500 and the slabs start at y=1000, so they begin 0.726 x width above the bottom edge */
   .page-hero { --band-art: url('../images/services-bg-m.webp'); align-items: flex-start; min-height: 0; padding-bottom: calc(72.6vw + 28px); }
+
+  /* mid-page bands use the same geometry: contact = slabs, services closing = sculpture */
+  .contact { --band-art: url('../images/services-bg-m.webp'); padding-bottom: calc(72.6vw + 28px); }
+  .cta { --band-art: url('../images/hero-bg-m.webp'); padding-bottom: calc(84.5vw + 28px); }
+  .contact-copy, .cta-copy { max-width: 560px; }
 }
 
 /* Short landscape screens (phones on their side): keep the hero's buttons above the fold */
