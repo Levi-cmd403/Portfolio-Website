@@ -5,7 +5,9 @@
     "description": "Responsive portfolio with modern visuals and polished interactions.",
     "stack": ["HTML", "CSS", "JavaScript"],
     "url": "https://github.com/Levi-cmd403",
-    "featured": true
+    "featured": true,
+    "image": "images/project-portfolio.webp",
+    "imageAlt": "Screenshot of the portfolio website home page"
   },
   {
     "title": "TaskFlow Android App",
@@ -13,7 +15,9 @@
     "description": "Task management app with local storage and clean UX.",
     "stack": ["Kotlin", "XML", "Room"],
     "url": "https://github.com/Levi-cmd403",
-    "featured": true
+    "featured": true,
+    "image": "images/project-taskflow.webp",
+    "imageAlt": "Abstract close-up of clear glass folded over a matte violet form"
   },
   {
     "title": "Client Landing Page",
@@ -21,6 +25,8 @@
     "description": "SEO-focused landing page with performance optimization.",
     "stack": ["HTML", "CSS", "JavaScript"],
     "url": "https://github.com/Levi-cmd403",
-    "featured": false
+    "featured": false,
+    "image": "images/project-landing.webp",
+    "imageAlt": "Abstract stack of clear glass slabs with one matte violet layer"
   }
 ]

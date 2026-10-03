@@ -3,6 +3,8 @@ window.__appReady = true;
 document.addEventListener('DOMContentLoaded', function () {
   var root = document.documentElement;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hasIO = 'IntersectionObserver' in window;
+  var ICONS = 'images/icons.svg';
 
   // Footer year
   document.querySelectorAll('#year').forEach(function (el) {
@@ -15,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function applyTheme(theme) {
     root.setAttribute('data-theme', theme);
-    if (themeMeta) themeMeta.setAttribute('content', theme === 'dark' ? '#0c0b10' : '#f7f6f3');
+    if (themeMeta) themeMeta.setAttribute('content', theme === 'dark' ? '#09090b' : '#f3f3f5');
     if (themeToggle) {
       themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
     }
@@ -60,9 +62,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ---------- Back to top ----------
-  var progress = document.getElementById('scroll-progress');
+  // ---------- Scroll state without scroll listeners ----------
+  // Zero-height sentinels are observed instead: the header gets its background once the
+  // top sentinel scrolls out, and back-to-top appears once the "fold" sentinel is passed.
+  // (The reading-progress bar is a CSS scroll-driven animation, no JS at all.)
   var backToTop = document.getElementById('back-to-top');
+
+  function watchPassed(id, onChange) {
+    var el = document.getElementById(id);
+    if (!el || !hasIO) return;
+    new IntersectionObserver(function (entries) {
+      var entry = entries[entries.length - 1];
+      onChange(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+    }).observe(el);
+  }
+  watchPassed('sentinel-top', function (passed) {
+    if (header) header.classList.toggle('is-scrolled', passed);
+  });
+  watchPassed('sentinel-fold', function (passed) {
+    if (backToTop) backToTop.classList.toggle('is-visible', passed);
+  });
 
   if (backToTop) {
     backToTop.addEventListener('click', function () {
@@ -72,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ---------- Reveal on scroll ----------
   var revealEls = document.querySelectorAll('[data-reveal]');
-  if ('IntersectionObserver' in window && !reduceMotion) {
+  if (hasIO && !reduceMotion) {
     var revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
@@ -86,63 +105,37 @@ document.addEventListener('DOMContentLoaded', function () {
     revealEls.forEach(function (el) { el.classList.add('is-revealed'); });
   }
 
-  // ---------- Scroll effects (one throttled handler: progress, header, back-to-top, scrollspy) ----------
+  // ---------- Scrollspy (home page): a thin band at ~40% of the viewport decides the section ----------
   var spyLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a.nav-link[href^="#"]'));
-  var spySections = spyLinks.map(function (link) {
-    return document.querySelector(link.getAttribute('href'));
-  });
-  var scrollState = { scrolled: null, topBtn: null, spy: -2, pending: false };
-
-  function updateOnScroll() {
-    scrollState.pending = false;
-    var doc = document.documentElement;
-    var y = window.pageYOffset || doc.scrollTop || 0;
-    var max = doc.scrollHeight - window.innerHeight;
-
-    if (progress) progress.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, y / max) : 0).toFixed(4) + ')';
-
-    var scrolled = y > 8;
-    if (header && scrolled !== scrollState.scrolled) {
-      scrollState.scrolled = scrolled;
-      header.classList.toggle('is-scrolled', scrolled);
+  if (spyLinks.length && hasIO) {
+    var spyBand = null;
+    var footerVisible = false;
+    var paintSpy = function () {
+      var current = footerVisible ? 'contact' : spyBand; // the page end always belongs to "Contact"
+      spyLinks.forEach(function (link) {
+        link.classList.toggle('is-current', link.getAttribute('href') === '#' + current);
+      });
+    };
+    var spyObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting && spyBand === entry.target.id) spyBand = null;
+      });
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) spyBand = entry.target.id;
+      });
+      paintSpy();
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    spyLinks.forEach(function (link) {
+      var section = document.querySelector(link.getAttribute('href'));
+      if (section) spyObserver.observe(section);
+    });
+    var footer = document.querySelector('.site-footer');
+    if (footer) {
+      new IntersectionObserver(function (entries) {
+        footerVisible = entries[entries.length - 1].isIntersecting;
+        paintSpy();
+      }).observe(footer);
     }
-
-    var showTop = y > 480;
-    if (backToTop && showTop !== scrollState.topBtn) {
-      scrollState.topBtn = showTop;
-      backToTop.classList.toggle('is-visible', showTop);
-    }
-
-    if (spyLinks.length) {
-      var current = -1;
-      for (var i = 0; i < spySections.length; i++) {
-        if (spySections[i] && y + 140 >= spySections[i].offsetTop) current = i;
-      }
-      // At the very bottom the last section may be too short to reach the trigger line.
-      if (max > 0 && y >= max - 4) current = spySections.length - 1;
-      if (current !== scrollState.spy) {
-        scrollState.spy = current;
-        spyLinks.forEach(function (link, idx) { link.classList.toggle('is-current', idx === current); });
-      }
-    }
-  }
-
-  function requestScrollUpdate() {
-    if (scrollState.pending) return;
-    scrollState.pending = true;
-    window.requestAnimationFrame(updateOnScroll);
-  }
-  window.addEventListener('scroll', requestScrollUpdate, { passive: true });
-  window.addEventListener('resize', requestScrollUpdate);
-  window.addEventListener('load', requestScrollUpdate); // fonts/layout have settled
-  updateOnScroll();
-
-  // Pause the floating hero mockup while it is offscreen (battery / jank on phones).
-  var heroVisual = document.querySelector('.hero-visual');
-  if (heroVisual && 'IntersectionObserver' in window) {
-    new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { heroVisual.classList.toggle('is-paused', !entry.isIntersecting); });
-    }).observe(heroVisual);
   }
 
   // ---------- Projects ----------
@@ -161,50 +154,33 @@ document.addEventListener('DOMContentLoaded', function () {
     return /^https?:\/\//i.test(url || '') ? url : '#';
   }
 
-  function thumbMarkup(category) {
-    if (category === 'android') {
-      return '<div class="pt pt-app" aria-hidden="true">' +
-        '<span class="h"></span>' +
-        '<span class="r on"><i></i><b></b></span>' +
-        '<span class="r on"><i></i><b></b></span>' +
-        '<span class="r"><i></i><b></b></span>' +
-        '<span class="r"><i></i><b></b></span>' +
-        '<span class="fab"></span></div>';
-    }
-    return '<div class="pt pt-web" aria-hidden="true">' +
-      '<span class="bar"><i></i><i></i><i></i></span>' +
-      '<span class="l"></span><span class="l w2"></span><span class="l m"></span>' +
-      '<span class="b"></span>' +
-      '<span class="g"><i></i><i></i><i></i></span></div>';
+  function icon(name, cls) {
+    return '<svg class="icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="' + ICONS + '#i-' + name + '"/></svg>';
   }
 
-  var TINTS = ['', 'tint-b', 'tint-c'];
+  function categoryLabel(category) {
+    return category === 'android' ? 'Android' : category === 'web' ? 'Web' : category.charAt(0).toUpperCase() + category.slice(1);
+  }
 
-  function projectCard(project, i) {
+  function projectTile(project, i) {
     var category = String(project.category || 'project').toLowerCase();
-    var stack = (project.stack || []).map(function (item) {
-      return '<span>' + escapeHtml(item) + '</span>';
-    }).join('');
     var url = safeUrl(project.url);
     var isGithub = /^https?:\/\/(www\.)?github\.com/i.test(url);
-    var num = String(i + 1);
-    if (num.length < 2) num = '0' + num;
+    var media = project.image
+      ? '<img src="' + escapeHtml(project.image) + '" alt="' + escapeHtml(project.imageAlt || '') + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" decoding="async" width="1280" height="800" />'
+      : '<div class="tile-fallback">' + icon(category === 'android' ? 'device-mobile' : 'browser') + '</div>';
+    var meta = categoryLabel(category) + (project.featured ? ', featured' : '');
 
     return (
-      '<article class="project-card ' + TINTS[i % TINTS.length] + '" style="animation-delay:' + (i * 70) + 'ms">' +
-        '<div class="project-thumb">' +
-          '<span class="project-index">' + num + '</span>' +
-          (project.featured ? '<span class="project-badge">Featured</span>' : '') +
-          thumbMarkup(category) +
-        '</div>' +
-        '<div class="project-body">' +
-          '<p class="project-kicker">' + escapeHtml(category) + '</p>' +
+      '<article class="tile" style="animation-delay:' + (i * 80) + 'ms">' +
+        '<div class="tile-media">' + media + '</div>' +
+        '<div class="tile-body">' +
+          '<p class="tile-meta">' + escapeHtml(meta) + '</p>' +
           '<h3>' + escapeHtml(project.title) + '</h3>' +
           '<p>' + escapeHtml(project.description) + '</p>' +
-          '<div class="project-stack">' + stack + '</div>' +
-          '<a class="link-arrow project-link" href="' + escapeHtml(url) + '" target="_blank" rel="noreferrer">' +
-            (isGithub ? 'View on GitHub' : 'View project') +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>' +
+          '<p class="tile-stack">' + escapeHtml((project.stack || []).join(', ')) + '</p>' +
+          '<a class="link-arrow" href="' + escapeHtml(url) + '" target="_blank" rel="noreferrer">' +
+            (isGithub ? 'View on GitHub' : 'View project') + icon('arrow-up-right') +
           '</a>' +
         '</div>' +
       '</article>'
@@ -218,31 +194,44 @@ document.addEventListener('DOMContentLoaded', function () {
       if (filter === 'featured') return !!project.featured;
       return String(project.category || '').toLowerCase() === filter;
     });
+    projectsList.setAttribute('aria-busy', 'false');
     if (!list.length) {
-      projectsList.innerHTML = '<p class="projects-state">No projects in this category yet.</p>';
+      projectsList.className = 'projects-grid';
+      projectsList.innerHTML =
+        '<div class="projects-state"><p>No projects in this category yet.</p>' +
+        '<button class="btn btn-secondary btn-sm" type="button" data-show-all>Show all projects</button></div>';
       return;
     }
-    projectsList.innerHTML = list.map(projectCard).join('');
+    projectsList.className = 'projects-grid layout-' + Math.min(list.length, 3);
+    projectsList.innerHTML = list.map(projectTile).join('');
+  }
+
+  function setFilter(filter) {
+    filterButtons.forEach(function (b) {
+      var active = (b.getAttribute('data-filter') || 'all').toLowerCase() === filter;
+      b.classList.toggle('is-active', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
+    renderProjects(filter);
   }
 
   if (projectsList) {
     filterButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var filter = (btn.getAttribute('data-filter') || 'all').toLowerCase();
-        filterButtons.forEach(function (b) {
-          var active = b === btn;
-          b.classList.toggle('is-active', active);
-          b.setAttribute('aria-pressed', String(active));
-        });
-        renderProjects(filter);
+        setFilter((btn.getAttribute('data-filter') || 'all').toLowerCase());
       });
+    });
+    projectsList.addEventListener('click', function (e) {
+      if (e.target.closest('[data-show-all]')) setFilter('all');
     });
 
     fetch('data/projects.json')
       .then(function (res) { if (!res.ok) throw new Error('Request failed'); return res.json(); })
       .then(function (data) { projectsData = Array.isArray(data) ? data : []; renderProjects('all'); })
       .catch(function () {
-        projectsList.innerHTML = '<p class="projects-state">Projects couldn’t be loaded right now. Please try again shortly.</p>';
+        projectsList.setAttribute('aria-busy', 'false');
+        projectsList.className = 'projects-grid';
+        projectsList.innerHTML = '<div class="projects-state"><p>Projects could not be loaded. Please refresh the page to try again.</p></div>';
       });
   }
 
@@ -276,8 +265,12 @@ document.addEventListener('DOMContentLoaded', function () {
       var addr = copyBtn.getAttribute('data-email') || '';
       copyText(addr, function () {
         copyBtn.classList.add('is-copied');
+        copyBtn.setAttribute('aria-label', 'Email address copied');
         clearTimeout(copyTimer);
-        copyTimer = setTimeout(function () { copyBtn.classList.remove('is-copied'); }, 2000);
+        copyTimer = setTimeout(function () {
+          copyBtn.classList.remove('is-copied');
+          copyBtn.setAttribute('aria-label', 'Copy email address');
+        }, 2000);
       }, function () {
         // Clipboard blocked: open the email menu instead so the address is never a dead end.
         openMailMenu(copyBtn);
@@ -288,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---------- Email menu ----------
   // A bare mailto: link does nothing on computers without a default mail app, so every
   // email link opens a small menu (Gmail / Outlook / mail app / copy). Without JS it
-  // still behaves as a normal mailto: link.
+  // still behaves as a normal mailto: link. On phones it is a bottom sheet (see CSS).
   var mailMenu = null;
   var mailBackdrop = null;
   var mailTrigger = null;
@@ -316,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (copy) {
         var state = copy.querySelector('[data-copy-state]');
         copyText(el.getAttribute('data-email'), function () {
-          state.textContent = 'copied ✓';
+          state.textContent = 'copied';
           setTimeout(closeMailMenu, 900);
         }, function () {
           state.textContent = 'press Ctrl+C to copy';
@@ -337,16 +330,19 @@ document.addEventListener('DOMContentLoaded', function () {
     return el;
   }
 
+  // The popover is positioned in page coordinates, so it scrolls with the page and
+  // never needs repositioning (no scroll listener).
   function positionMailMenu(trigger) {
     var r = trigger.getBoundingClientRect();
     var mw = mailMenu.offsetWidth;
     var mh = mailMenu.offsetHeight;
     var gap = 10;
-    var left = Math.min(Math.max(12, r.left), window.innerWidth - mw - 12);
+    var vw = document.documentElement.clientWidth;
+    var left = Math.min(Math.max(12, r.left), vw - mw - 12);
     var below = window.innerHeight - r.bottom;
     var top = below >= mh + gap + 12 ? r.bottom + gap : Math.max(12, r.top - mh - gap);
-    mailMenu.style.left = left + 'px';
-    mailMenu.style.top = top + 'px';
+    mailMenu.style.left = (left + window.pageXOffset) + 'px';
+    mailMenu.style.top = (top + window.pageYOffset) + 'px';
   }
 
   function openMailMenu(trigger) {
@@ -410,7 +406,4 @@ document.addEventListener('DOMContentLoaded', function () {
     // Mobile browsers fire resize when the address bar collapses; only react to real width changes.
     if (window.innerWidth !== lastWidth) { lastWidth = window.innerWidth; closeMailMenu(false); }
   });
-  window.addEventListener('scroll', function () {
-    if (mailMenu && !mailMenu.hidden && mailTrigger) positionMailMenu(mailTrigger);
-  }, { passive: true });
 });
